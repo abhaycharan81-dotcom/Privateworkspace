@@ -1,8 +1,8 @@
 ﻿import React, { useState } from 'react';
 import { Topbar } from './components/layout/Topbar';
 
-import { Hero } from './components/layout/Hero';
 import { Dashboard } from './components/layout/Dashboard';
+
 import { ModuleModal } from './components/ModuleModal';
 import { AppProvider } from './context/AppContext';
 import './App.css';
@@ -24,7 +24,6 @@ function AppContent() {
 
       <div className="layout">
         <main className="main" role="main">
-          <Hero onModuleClick={handleModuleClick} />
           <Dashboard onModuleClick={handleModuleClick} />
         </main>
       </div>

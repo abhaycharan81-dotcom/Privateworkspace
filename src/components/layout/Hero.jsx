@@ -51,10 +51,6 @@ export function Hero({ onModuleClick }) {
       <div className="hero-bg" aria-hidden="true"></div>
       <div className="hero-grid">
         <div className="hero-left">
-          <div className="kicker">Welcome</div>
-          <h1 className="hero-title">Welcome to Your Private Workspace</h1>
-          <p className="hero-sub">Here are your ongoing projects and multiple workspaces.</p>
-
           <div className="hero-stats">
             <div className="stat">
               <div className="stat-value">{stats.credentials}</div>
