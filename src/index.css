@@ -118,9 +118,10 @@ p {
 .layout {
   display: flex;
   flex: 1;
-  gap: var(--spacing-md);
+  gap: 0;
   overflow: hidden;
 }
+
 
 .topbar {
   display: flex;
@@ -136,16 +137,11 @@ p {
   z-index: 1000;
 }
 
+/* Sidebar removed */
 .sidebar {
-  width: 280px;
-  background: var(--primary-light);
-  border-right: 1px solid var(--border);
-  padding: var(--spacing-lg);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
+  display: none;
 }
+
 
 .main {
   flex: 1;
@@ -1224,18 +1220,7 @@ tr:hover {
     flex-direction: column;
   }
 
-  .sidebar {
-    width: 100%;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: var(--spacing-md);
-  }
 
-  .sidebar-section {
-    flex-direction: row;
-    flex-shrink: 0;
-  }
 
   .main {
     padding: var(--spacing-lg);

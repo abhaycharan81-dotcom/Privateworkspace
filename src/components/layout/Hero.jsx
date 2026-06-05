@@ -11,9 +11,10 @@ export function Hero({ onModuleClick }) {
   });
   const [meetings, setMeetings] = useState([]);
   const [projects, setProjects] = useState([]);
-  const { activityLog } = useAppState();
+  // Note: Recent activity removed.
 
   useEffect(() => {
+
     const loadData = async () => {
       try {
         const [credentialsData, projectsData, documentsData, meetingsData] = await Promise.all([
@@ -132,30 +133,9 @@ export function Hero({ onModuleClick }) {
         </div>
 
         <div className="hero-right">
-          <div className="card glass analytics-card">
-            <div className="card-title">Recent activity</div>
-            <div className="activity-feed">
-              {activityLog.length === 0 ? (
-                <div className="activity-item">
-                  <span className="muted">No activity yet</span>
-                </div>
-              ) : (
-                activityLog.slice(0, 5).map(activity => {
-                  const moduleIcon = MODULES.find(m => m.id === activity.module)?.icon || '📌';
-                  return (
-                    <div key={activity.id} className="activity-item">
-                      <div className="activity-icon">{moduleIcon}</div>
-                      <div className="activity-content">
-                        <div className="activity-title">{activity.action}</div>
-                        <div className="activity-meta">{activity.description}</div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
+          {/* Recent activity removed */}
         </div>
+
       </div>
     </section>
   );

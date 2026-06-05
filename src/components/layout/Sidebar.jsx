@@ -24,9 +24,7 @@ export function Sidebar({ onModuleClick }) {
       <div className="sidebar-section">
         <div className="sidebar-title">Utilities</div>
         <div className="sidebar-actions">
-          <button className="sidebar-link" type="button">
-            📊 Recent activity
-          </button>
+
           <button className="sidebar-link" type="button">
             ⚙️ Settings
           </button>
