@@ -77,9 +77,15 @@ export const DataManagers = {
     },
     
     search(query) {
-      // Search requires loaded data; callers should handle this
-      // For now, return a promise that resolves to empty array
-      return Promise.resolve([]);
+      const credentials = Storage.get('credentials', []);
+      const q = (query || '').toLowerCase();
+      return (Array.isArray(credentials) ? credentials : Object.values(credentials || {})).filter(c =>
+        (c.accountName || '').toLowerCase().includes(q) ||
+        (c.username || '').toLowerCase().includes(q) ||
+        (c.email || '').toLowerCase().includes(q) ||
+        (c.platform || '').toLowerCase().includes(q) ||
+        (c.notes || '').toLowerCase().includes(q)
+      );
     }
   },
 

@@ -1,6 +1,7 @@
 import React from 'react';
 
-export function ProfileMenu({ isOpen, onClose }) {
+export function ProfileMenu({ isOpen, onClose, onSettings }) {
+
   if (!isOpen) return null;
 
   const handleLogout = () => {
@@ -10,9 +11,11 @@ export function ProfileMenu({ isOpen, onClose }) {
   };
 
   const handleSettings = () => {
-    console.log('Settings clicked');
+    if (onSettings) onSettings();
     onClose();
   };
+
+
 
   const handleAbout = () => {
     console.log('About clicked');

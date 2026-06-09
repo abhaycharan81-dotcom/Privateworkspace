@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
+import { DetailModal } from '../DetailModal';
 
 export function CommunicationsModule() {
   const [communications, setCommunications] = useState([]);
@@ -12,6 +13,9 @@ export function CommunicationsModule() {
     notes: ''
   });
   const { addNotification, logActivity } = useAppState();
+  const [selectedItem, setSelectedItem] = useState(null);
+
+
 
   useEffect(() => {
     const loadCommunications = async () => {
@@ -27,9 +31,16 @@ export function CommunicationsModule() {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    await DataManagers.communications.add(formData);
+    const created = await DataManagers.communications.add(formData);
     const updated = await DataManagers.communications.getAll();
     setCommunications(updated);
+
+    // Auto-open details for the newly created communication.
+    if (created && created.id != null) {
+      const full = updated.find(x => x && x.id === created.id) || created;
+      setSelectedItem(full);
+    }
+
     setFormData({
       contact: '',
       type: '',
@@ -132,7 +143,13 @@ export function CommunicationsModule() {
           </div>
         ) : (
           communications.map(comm => (
-            <div key={comm.id} className="card glass">
+            <div
+              key={comm.id}
+              className="card glass"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setSelectedItem(comm)}
+              title="Open details"
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <div style={{ flex: 1 }}>
                   <div className="card-title">{comm.contact}</div>
@@ -152,7 +169,10 @@ export function CommunicationsModule() {
                 </div>
                 <button
                   className="btn small danger"
-                  onClick={() => handleDelete(comm.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(comm.id);
+                  }}
                 >
                   Delete
                 </button>
@@ -161,6 +181,15 @@ export function CommunicationsModule() {
           ))
         )}
       </div>
+
+      {selectedItem && (
+        <DetailModal
+          title={`Communication • ${selectedItem.contact || ''}`}
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </div>
   );
 }
+

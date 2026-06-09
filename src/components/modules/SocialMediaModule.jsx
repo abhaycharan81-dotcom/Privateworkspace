@@ -1,11 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
+import { DetailModal } from '../DetailModal';
 
 const PLATFORMS = ['LinkedIn', 'X', 'Instagram', 'Facebook', 'YouTube'];
 
 export function SocialMediaModule() {
   const [posts, setPosts] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     content: '',
@@ -28,9 +31,16 @@ export function SocialMediaModule() {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    await DataManagers.socialmedia.add(formData);
+    const created = await DataManagers.socialmedia.add(formData);
     const updated = await DataManagers.socialmedia.getAll();
     setPosts(updated);
+
+    // Auto-open details for the newly created post.
+    if (created && created.id != null) {
+      const full = updated.find(x => x && x.id === created.id) || created;
+      setSelectedItem(full);
+    }
+
     setFormData({ content: '', platforms: [], status: 'draft' });
     setShowForm(false);
     addNotification('success', 'Post Created', 'Added to content calendar');
@@ -136,7 +146,13 @@ export function SocialMediaModule() {
           </div>
         ) : (
           posts.map(post => (
-            <div key={post.id} className="card glass">
+            <div
+              key={post.id}
+              className="card glass"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setSelectedItem(post)}
+              title="Open details"
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div>
                   <div className="card-title">Platforms: {post.platforms.join(', ')}</div>
@@ -146,7 +162,10 @@ export function SocialMediaModule() {
                 </div>
                 <button
                   className="btn small danger"
-                  onClick={() => handleDelete(post.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(post.id);
+                  }}
                 >
                   Delete
                 </button>
@@ -162,6 +181,15 @@ export function SocialMediaModule() {
           ))
         )}
       </div>
+
+      {selectedItem && (
+        <DetailModal
+          title={`Social Post • ${(selectedItem.platforms && selectedItem.platforms[0]) || ''}`}
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </div>
   );
 }
+

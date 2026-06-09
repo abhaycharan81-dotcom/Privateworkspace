@@ -7,8 +7,10 @@ import { QuickActionMenu } from './QuickActionMenu';
 import { ProfileMenu } from './ProfileMenu';
 
 export function Topbar({ onModuleClick }) {
-  const { notificationCount, workspaces, currentWorkspace } = useAppState();
+  const { notificationCount, workspaces, currentWorkspace, globalSearchEnabled, notificationsEnabled } = useAppState();
   const [searchQuery, setSearchQuery] = useState('');
+
+
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -16,7 +18,7 @@ export function Topbar({ onModuleClick }) {
 
   return (
     <header className="topbar" role="banner">
-      <div className="brand">
+      {/*<div className="brand">
         <div className="logo" aria-hidden="true">
           <span className="logo-dot"></span>
           <span className="logo-ring"></span>
@@ -25,7 +27,7 @@ export function Topbar({ onModuleClick }) {
           <div className="brand-name">Private Workspace</div>
           <div className="brand-sub">Premium Productivity Hub</div>
         </div>
-      </div>
+      </div>*/}
 
       <div className="topbar-center">
         <div className="workspace-switcher" role="group" aria-label="Workspace switcher">
@@ -81,10 +83,11 @@ export function Topbar({ onModuleClick }) {
           onClick={() => setShowNotifications(!showNotifications)}
         >
           🔔
-          {notificationCount > 0 && (
+          {notificationsEnabled && notificationCount > 0 && (
             <span className="badge" aria-hidden="true">{notificationCount}</span>
           )}
         </button>
+
         <div className="profile" role="group" aria-label="User profile">
           <button
             className="profile-btn"
@@ -102,11 +105,14 @@ export function Topbar({ onModuleClick }) {
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
       />
-      <SearchResults
-        query={searchQuery}
-        onModuleClick={onModuleClick}
-        onClose={() => setShowSearch(false)}
-      />
+      {globalSearchEnabled && (
+        <SearchResults
+          query={searchQuery}
+          onModuleClick={onModuleClick}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
+
       <QuickActionMenu
         isOpen={showQuickMenu}
         onClose={() => setShowQuickMenu(false)}
@@ -115,7 +121,13 @@ export function Topbar({ onModuleClick }) {
       <ProfileMenu
         isOpen={showProfileMenu}
         onClose={() => setShowProfileMenu(false)}
+        onSettings={() => {
+          setShowProfileMenu(false);
+          // Delegate Settings open to App via custom event.
+          window.dispatchEvent(new CustomEvent('pw:openSettings'));
+        }}
       />
+
     </header>
   );
 }

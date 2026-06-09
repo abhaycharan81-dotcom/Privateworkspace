@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
+import { DetailModal } from '../DetailModal';
 
 export function DocumentsModule() {
   const [documents, setDocuments] = useState([]);
@@ -12,6 +13,8 @@ export function DocumentsModule() {
     notes: ''
   });
   const { addNotification, logActivity } = useAppState();
+  const [selectedItem, setSelectedItem] = useState(null);
+
 
   useEffect(() => {
     const loadDocuments = async () => {
@@ -28,12 +31,19 @@ export function DocumentsModule() {
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(t => t);
-    await DataManagers.documents.add({
+    const created = await DataManagers.documents.add({
       ...formData,
       tags: tagsArray
     });
     const updated = await DataManagers.documents.getAll();
     setDocuments(updated);
+
+    // Auto-open details for the newly created document.
+    if (created && created.id != null) {
+      const full = updated.find(x => x && x.id === created.id) || created;
+      setSelectedItem(full);
+    }
+
     setFormData({ name: '', type: '', tags: '', notes: '' });
     setShowForm(false);
     addNotification('success', 'Document Added', `${formData.name} uploaded`);
@@ -141,14 +151,22 @@ export function DocumentsModule() {
             </tr>
           ) : (
             documents.map(doc => (
-              <tr key={doc.id}>
+              <tr
+                key={doc.id}
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSelectedItem(doc)}
+                title="Open details"
+              >
                 <td>{doc.name}</td>
                 <td>{doc.type}</td>
                 <td>{doc.tags?.join(', ') || '—'}</td>
                 <td>
                   <button
                     className="btn small danger"
-                    onClick={() => handleDelete(doc.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(doc.id);
+                    }}
                   >
                     Delete
                   </button>
@@ -158,6 +176,15 @@ export function DocumentsModule() {
           )}
         </tbody>
       </table>
+
+      {selectedItem && (
+        <DetailModal
+          title={`Document • ${selectedItem.name || ''}`}
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </div>
   );
 }
+
