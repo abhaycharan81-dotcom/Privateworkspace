@@ -3,8 +3,10 @@ import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
 import { DetailModal } from '../DetailModal';
 import { EditDetailModal } from '../EditDetailModal';
+import { formatProjectDeadlineLabel } from '../../utils/formatters';
 
 export function ProjectsModule() {
+
   const [projects, setProjects] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editing, setEditing] = useState(false);
@@ -152,7 +154,11 @@ export function ProjectsModule() {
                   <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
                     Status: <span style={{ color: 'var(--color-accent)' }}>{project.status}</span>
                   </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '0.25rem' }}>
+                    Deadline: <span style={{ color: 'var(--color-accent)' }}>{formatProjectDeadlineLabel(project.deadline)}</span>
+                  </div>
                 </div>
+
                 <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                   <button
                     className="btn small"

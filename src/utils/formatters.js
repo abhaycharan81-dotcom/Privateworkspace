@@ -36,6 +36,53 @@ export function toDisplayValue(value) {
   return String(value);
 }
 
+function startOfLocalDay(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function isSameLocalDay(a, b) {
+  return startOfLocalDay(a).getTime() === startOfLocalDay(b).getTime();
+}
+
+function parseDeadline(deadline) {
+  if (!deadline) return undefined;
+  if (deadline instanceof Date) {
+    return Number.isNaN(deadline.getTime()) ? undefined : deadline;
+  }
+  if (typeof deadline === 'string') {
+    const s = deadline.trim();
+    if (!s) return undefined;
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? undefined : d;
+  }
+  // try generic parse
+  const d = new Date(deadline);
+  return Number.isNaN(d.getTime()) ? undefined : d;
+}
+
+export function formatProjectDeadlineLabel(deadline) {
+  const d = parseDeadline(deadline);
+  if (!d) return '—';
+
+  const now = new Date();
+  const today = startOfLocalDay(now);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  if (isSameLocalDay(d, today)) return 'by today';
+  if (isSameLocalDay(d, tomorrow)) return 'by tonight';
+
+  // keep output compact but readable
+  const dateStr = d.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+  return `by ${dateStr}`;
+}
+
 export function pickDisplayTitle(item, fallback = 'Details') {
   if (!item || typeof item !== 'object') return fallback;
   return (
@@ -49,4 +96,5 @@ export function pickDisplayTitle(item, fallback = 'Details') {
     fallback
   );
 }
+
 
