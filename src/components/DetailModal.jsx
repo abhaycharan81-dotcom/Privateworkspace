@@ -20,7 +20,7 @@ function renderValue(value) {
   );
 }
 
-export function DetailModal({ title, item, onClose }) {
+export function DetailModal({ title, item, onClose, children }) {
   if (!item) return null;
 
   const safeTitle = title || pickDisplayTitle(item, 'Details');
@@ -46,6 +46,7 @@ export function DetailModal({ title, item, onClose }) {
         </div>
 
         <div className="modal-body" style={{ maxHeight: '70vh', overflow: 'auto' }}>
+          {children}
           <div
             style={{
               display: 'grid',
@@ -73,4 +74,5 @@ export function DetailModal({ title, item, onClose }) {
     </div>
   );
 }
+
 

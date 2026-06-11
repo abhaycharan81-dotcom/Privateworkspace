@@ -2,10 +2,16 @@ import React, { useState, useCallback } from 'react';
 import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
 import { DetailModal } from '../DetailModal';
+import { EditDetailModal } from '../EditDetailModal';
 
 export function ProjectsModule() {
   const [projects, setProjects] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const { addNotification, logActivity } = useAppState();
+
+
+
 
 
   React.useEffect(() => {
@@ -25,7 +31,7 @@ export function ProjectsModule() {
     status: 'planned',
     deadline: ''
   });
-  const { addNotification, logActivity } = useAppState();
+
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
@@ -147,15 +153,29 @@ export function ProjectsModule() {
                     Status: <span style={{ color: 'var(--color-accent)' }}>{project.status}</span>
                   </div>
                 </div>
-                <button
-                  className="btn small danger"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(project.id);
-                  }}
-                >
-                  Delete
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <button
+                    className="btn small"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedItem(project);
+                      setEditing(true);
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    className="btn small danger"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(project.id);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+
               </div>
               <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
                 {project.description}
@@ -165,13 +185,51 @@ export function ProjectsModule() {
         )}
       </div>
 
-      {selectedItem && (
+      {selectedItem && !editing && (
         <DetailModal
           title={`Project • ${selectedItem.name || ''}`}
           item={selectedItem}
-          onClose={() => setSelectedItem(null)}
+          onClose={() => {
+            setSelectedItem(null);
+            setEditing(false);
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
+            <button
+              className="btn small"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditing(true);
+              }}
+            >
+              ✏️ Edit
+            </button>
+          </div>
+        </DetailModal>
+      )}
+
+      {selectedItem && editing && (
+        <EditDetailModal
+          moduleId="projects"
+          title={`Edit Project • ${selectedItem.name || ''}`}
+          item={selectedItem}
+          onClose={() => {
+            setEditing(false);
+          }}
+          onSave={async (updated) => {
+            await DataManagers.projects.update(selectedItem.id, updated);
+            const refreshed = await DataManagers.projects.getAll();
+            setProjects(refreshed);
+            const full = refreshed.find((x) => x && x.id === selectedItem.id);
+            setSelectedItem(full || updated);
+            setEditing(false);
+            addNotification('success', 'Project Updated', 'Changes saved');
+            logActivity('projects', 'update', `Updated project: ${updated.name || selectedItem.name}`);
+          }}
         />
       )}
+
     </div>
   );
 }
