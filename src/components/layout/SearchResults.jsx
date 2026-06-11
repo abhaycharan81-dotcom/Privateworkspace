@@ -1,44 +1,62 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataManagers, MODULES } from '../../utils/dataManagers';
 
 export function SearchResults({ query, onModuleClick, onClose }) {
-  const results = useMemo(() => {
-    if (!query || query.trim().length === 0) return [];
+  const [results, setResults] = useState([]);
 
-    const searchQuery = query.toLowerCase();
-    const allResults = [];
+  useEffect(() => {
+    let cancelled = false;
 
-    // Search across all modules
-    DataManagers.credentials.search(searchQuery).forEach(item => {
-      allResults.push({ ...item, moduleId: 'credentials', type: 'Credential' });
-    });
+    const run = async () => {
+      if (!query || query.trim().length === 0) {
+        setResults([]);
+        return;
+      }
 
-    DataManagers.communications.search(searchQuery).forEach(item => {
-      allResults.push({ ...item, moduleId: 'communications', type: 'Communication' });
-    });
+      const searchQuery = query.toLowerCase();
+      const allResults = [];
 
-    DataManagers.projects.search(searchQuery).forEach(item => {
-      allResults.push({ ...item, moduleId: 'projects', type: 'Project' });
-    });
+      const safePush = (moduleId, type, maybeArr) => {
+        if (Array.isArray(maybeArr)) {
+          maybeArr.forEach(item => {
+            allResults.push({ ...item, moduleId, type });
+          });
+        }
+      };
 
-    DataManagers.documents.search(searchQuery).forEach(item => {
-      allResults.push({ ...item, moduleId: 'documents', type: 'Document' });
-    });
+      try {
+        const [credentials, communications, projects, documents, socialmedia, meetings, travel] = await Promise.all([
+          DataManagers.credentials.search(searchQuery),
+          DataManagers.communications.search(searchQuery),
+          DataManagers.projects.search(searchQuery),
+          DataManagers.documents.search(searchQuery),
+          DataManagers.socialmedia.search(searchQuery),
+          DataManagers.meetings.search(searchQuery),
+          DataManagers.travel.search(searchQuery)
+        ]);
 
-    DataManagers.socialmedia.search(searchQuery).forEach(item => {
-      allResults.push({ ...item, moduleId: 'socialmedia', type: 'Social Post' });
-    });
+        safePush('credentials', 'Credential', credentials);
+        safePush('communications', 'Communication', communications);
+        safePush('projects', 'Project', projects);
+        safePush('documents', 'Document', documents);
+        safePush('socialmedia', 'Social Post', socialmedia);
+        safePush('meetings', 'Meeting', meetings);
+        safePush('travel', 'Travel', travel);
+      } catch (e) {
+        if (!cancelled) setResults([]);
+        return;
+      }
 
-    DataManagers.meetings.search(searchQuery).forEach(item => {
-      allResults.push({ ...item, moduleId: 'meetings', type: 'Meeting' });
-    });
+      if (!cancelled) setResults(allResults);
+    };
 
-    DataManagers.travel.search(searchQuery).forEach(item => {
-      allResults.push({ ...item, moduleId: 'travel', type: 'Travel' });
-    });
+    run();
 
-    return allResults;
+    return () => {
+      cancelled = true;
+    };
   }, [query]);
+
 
   const handleResultClick = (moduleId) => {
     onModuleClick(moduleId);

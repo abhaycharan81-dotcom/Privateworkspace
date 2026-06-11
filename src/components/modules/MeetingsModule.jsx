@@ -1,9 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
+import { DetailModal } from '../DetailModal';
 
 export function MeetingsModule() {
   const [meetings, setMeetings] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -29,12 +32,19 @@ export function MeetingsModule() {
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     const participantsArray = formData.participants.split(',').map(p => p.trim());
-    await DataManagers.meetings.add({
+    const created = await DataManagers.meetings.add({
       ...formData,
       participants: participantsArray
     });
     const updated = await DataManagers.meetings.getAll();
     setMeetings(updated);
+
+    // Auto-open details for the newly created meeting.
+    if (created && created.id != null) {
+      const full = updated.find(x => x && x.id === created.id) || created;
+      setSelectedItem(full);
+    }
+
     setFormData({
       title: '',
       date: new Date().toISOString().split('T')[0],
@@ -141,7 +151,13 @@ export function MeetingsModule() {
           </div>
         ) : (
           meetings.map(meeting => (
-            <div key={meeting.id} className="card glass">
+            <div
+              key={meeting.id}
+              className="card glass"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setSelectedItem(meeting)}
+              title="Open details"
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <div className="card-title">{meeting.title}</div>
@@ -151,7 +167,10 @@ export function MeetingsModule() {
                 </div>
                 <button
                   className="btn small danger"
-                  onClick={() => handleDelete(meeting.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(meeting.id);
+                  }}
                 >
                   Delete
                 </button>
@@ -164,6 +183,15 @@ export function MeetingsModule() {
           ))
         )}
       </div>
+
+      {selectedItem && (
+        <DetailModal
+          title={`Meeting • ${selectedItem.title || ''}`}
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </div>
   );
 }
+

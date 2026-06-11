@@ -10,10 +10,46 @@ export function AppProvider({ children }) {
   const [workspaces] = useState(['Workspace 1', 'Workspace 2', 'Workspace 3']);
   const [currentWorkspace] = useState(0);
 
+  const DEFAULT_SETTINGS = {
+    notificationsEnabled: true,
+    globalSearchEnabled: true,
+    modulePreferences: {
+      credentials: true,
+      communications: true,
+      projects: true,
+      documents: true,
+      socialmedia: true,
+      meetings: true,
+      travel: true
+    }
+  };
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(DEFAULT_SETTINGS.notificationsEnabled);
+  const [globalSearchEnabled, setGlobalSearchEnabled] = useState(DEFAULT_SETTINGS.globalSearchEnabled);
+  const [modulePreferences, setModulePreferences] = useState(DEFAULT_SETTINGS.modulePreferences);
+
+
   useEffect(() => {
     setNotifications(Storage.get('notifications', []));
     setActivityLog(Storage.get('activityLog', []));
+
+    const loaded = Storage.get('settings', null);
+    if (loaded && typeof loaded === 'object') {
+      if (typeof loaded.notificationsEnabled === 'boolean') {
+        setNotificationsEnabled(loaded.notificationsEnabled);
+      }
+      if (typeof loaded.globalSearchEnabled === 'boolean') {
+        setGlobalSearchEnabled(loaded.globalSearchEnabled);
+      }
+      if (loaded.modulePreferences && typeof loaded.modulePreferences === 'object') {
+        setModulePreferences({
+          ...DEFAULT_SETTINGS.modulePreferences,
+          ...loaded.modulePreferences
+        });
+      }
+    }
   }, []);
+
 
   const addNotification = useCallback((type, title, message) => {
     const notification = {
@@ -69,8 +105,17 @@ export function AppProvider({ children }) {
         logActivity,
         workspaces,
         currentWorkspace,
-        notificationCount: notifications.length
+        notificationCount: notifications.length,
+
+        // Settings state + setters
+        notificationsEnabled,
+        setNotificationsEnabled,
+        globalSearchEnabled,
+        setGlobalSearchEnabled,
+        modulePreferences,
+        setModulePreferences
       }}
+
     >
       {children}
     </AppContext.Provider>

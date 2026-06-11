@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
+import { DetailModal } from '../DetailModal';
 
-export function CredentialsModule({ onClose }) {
+export function CredentialsModule() {
   const [credentials, setCredentials] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -14,6 +15,8 @@ export function CredentialsModule({ onClose }) {
     tags: ''
   });
   const { addNotification, logActivity } = useAppState();
+  const [selectedItem, setSelectedItem] = useState(null);
+
 
   useEffect(() => {
     const loadCredentials = async () => {
@@ -34,13 +37,20 @@ export function CredentialsModule({ onClose }) {
       .map(t => t.trim())
       .filter(t => t);
 
-    await DataManagers.credentials.add({
+    const created = await DataManagers.credentials.add({
       ...formData,
       tags: tagsArray
     });
 
     const updated = await DataManagers.credentials.getAll();
     setCredentials(updated);
+
+    // Auto-open details for the newly created credential.
+    if (created && created.id != null) {
+      const full = updated.find(x => x && x.id === created.id) || created;
+      setSelectedItem(full);
+    }
+
     setFormData({
       platform: '',
       username: '',
@@ -179,7 +189,12 @@ export function CredentialsModule({ onClose }) {
             </tr>
           ) : (
             credentials.map(cred => (
-              <tr key={cred.id}>
+              <tr
+                key={cred.id}
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSelectedItem(cred)}
+                title="Open details"
+              >
                 <td>{cred.platform}</td>
                 <td>{cred.username}</td>
                 <td>{cred.email || '—'}</td>
@@ -187,7 +202,10 @@ export function CredentialsModule({ onClose }) {
                 <td>
                   <button
                     className="btn small danger"
-                    onClick={() => handleDelete(cred.id, cred.platform)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(cred.id, cred.platform);
+                    }}
                   >
                     Delete
                   </button>
@@ -197,6 +215,15 @@ export function CredentialsModule({ onClose }) {
           )}
         </tbody>
       </table>
+
+      {selectedItem && (
+        <DetailModal
+          title={`Credential • ${selectedItem.platform || ''}`}
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </div>
   );
 }
+

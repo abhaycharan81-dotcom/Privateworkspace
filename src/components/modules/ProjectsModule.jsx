@@ -1,9 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
+import { DetailModal } from '../DetailModal';
 
 export function ProjectsModule() {
   const [projects, setProjects] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+
 
   React.useEffect(() => {
     let cancelled = false;
@@ -26,9 +29,16 @@ export function ProjectsModule() {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    await DataManagers.projects.add(formData);
+    const created = await DataManagers.projects.add(formData);
     const updated = await DataManagers.projects.getAll();
     setProjects(updated);
+
+    // Auto-open details for the newly created project.
+    if (created && created.id != null) {
+      const full = updated.find(x => x && x.id === created.id) || created;
+      setSelectedItem(full);
+    }
+
     setFormData({ name: '', description: '', status: 'planned', deadline: '' });
     setShowForm(false);
     addNotification('success', 'Project Created', `${formData.name} added to tracker`);
@@ -123,7 +133,13 @@ export function ProjectsModule() {
           </div>
         ) : (
           projects.map(project => (
-            <div key={project.id} className="card glass">
+            <div
+              key={project.id}
+              className="card glass"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setSelectedItem(project)}
+              title="Open details"
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <div className="card-title">{project.name}</div>
@@ -133,7 +149,10 @@ export function ProjectsModule() {
                 </div>
                 <button
                   className="btn small danger"
-                  onClick={() => handleDelete(project.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(project.id);
+                  }}
                 >
                   Delete
                 </button>
@@ -145,6 +164,15 @@ export function ProjectsModule() {
           ))
         )}
       </div>
+
+      {selectedItem && (
+        <DetailModal
+          title={`Project • ${selectedItem.name || ''}`}
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </div>
   );
 }
+

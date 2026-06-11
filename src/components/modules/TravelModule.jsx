@@ -1,9 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
+import { DetailModal } from '../DetailModal';
 
 export function TravelModule() {
   const [trips, setTrips] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     destination: '',
@@ -28,12 +31,19 @@ export function TravelModule() {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    await DataManagers.travel.add({
+    const created = await DataManagers.travel.add({
       ...formData,
       budget: parseFloat(formData.budget)
     });
     const updated = await DataManagers.travel.getAll();
     setTrips(updated);
+
+    // Auto-open details for the newly created trip.
+    if (created && created.id != null) {
+      const full = updated.find(x => x && x.id === created.id) || created;
+      setSelectedItem(full);
+    }
+
     setFormData({
       destination: '',
       startDate: '',
@@ -141,7 +151,13 @@ export function TravelModule() {
           </div>
         ) : (
           trips.map(trip => (
-            <div key={trip.id} className="card glass">
+            <div
+              key={trip.id}
+              className="card glass"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setSelectedItem(trip)}
+              title="Open details"
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <div className="card-title">{trip.destination}</div>
@@ -151,7 +167,10 @@ export function TravelModule() {
                 </div>
                 <button
                   className="btn small danger"
-                  onClick={() => handleDelete(trip.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(trip.id);
+                  }}
                 >
                   Delete
                 </button>
@@ -164,6 +183,15 @@ export function TravelModule() {
           ))
         )}
       </div>
+
+      {selectedItem && (
+        <DetailModal
+          title={`Trip • ${selectedItem.destination || ''}`}
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </div>
   );
 }
+
