@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { DataManagers } from '../../utils/dataManagers';
 import { useAppState } from '../../context/AppContext';
 import { DetailModal } from '../DetailModal';
+import { EditDetailModal } from '../EditDetailModal';
 
 export function CredentialsModule() {
   const [credentials, setCredentials] = useState([]);
@@ -16,6 +17,8 @@ export function CredentialsModule() {
   });
   const { addNotification, logActivity } = useAppState();
   const [selectedItem, setSelectedItem] = useState(null);
+  const [editing, setEditing] = useState(false);
+
 
 
   useEffect(() => {
@@ -200,29 +203,81 @@ export function CredentialsModule() {
                 <td>{cred.email || '—'}</td>
                 <td>{cred.tags?.join(', ') || '—'}</td>
                 <td>
-                  <button
-                    className="btn small danger"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(cred.id, cred.platform);
-                    }}
-                  >
-                    Delete
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                    <button
+                      className="btn small"
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedItem(cred);
+                        setEditing(true);
+                      }}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      className="btn small danger"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(cred.id, cred.platform);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
+
               </tr>
             ))
           )}
         </tbody>
       </table>
 
-      {selectedItem && (
+      {selectedItem && !editing && (
         <DetailModal
           title={`Credential • ${selectedItem.platform || ''}`}
           item={selectedItem}
-          onClose={() => setSelectedItem(null)}
+          onClose={() => {
+            setSelectedItem(null);
+            setEditing(false);
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
+            <button
+              className="btn small"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditing(true);
+              }}
+            >
+              ✏️ Edit
+            </button>
+          </div>
+        </DetailModal>
+      )}
+
+      {selectedItem && editing && (
+        <EditDetailModal
+          moduleId="credentials"
+          title={`Edit Credential • ${selectedItem.platform || ''}`}
+          item={selectedItem}
+          onClose={() => {
+            setEditing(false);
+          }}
+          onSave={async (updated) => {
+            await DataManagers.credentials.update(selectedItem.id, updated);
+            const refreshed = await DataManagers.credentials.getAll();
+            setCredentials(refreshed);
+            const full = refreshed.find((x) => x && x.id === selectedItem.id);
+            setSelectedItem(full || updated);
+            setEditing(false);
+            addNotification('success', 'Credential Updated', 'Changes saved');
+            logActivity('credentials', 'update', `Updated credential: ${updated.platform || selectedItem.platform}`);
+          }}
         />
       )}
+
     </div>
   );
 }

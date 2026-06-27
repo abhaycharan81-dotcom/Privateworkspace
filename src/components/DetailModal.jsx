@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { toDisplayValue, pickDisplayTitle } from '../utils/formatters';
 
 function renderValue(value) {
@@ -20,7 +20,13 @@ function renderValue(value) {
   );
 }
 
-export function DetailModal({ title, item, onClose }) {
+export function DetailModal({ title, item, onClose, children }) {
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const toggleFullScreen = useCallback(() => {
+    setIsFullScreen((v) => !v);
+  }, []);
+
+  
   if (!item) return null;
 
   const safeTitle = title || pickDisplayTitle(item, 'Details');
@@ -32,20 +38,42 @@ export function DetailModal({ title, item, onClose }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal" role="dialog" aria-modal="true" aria-label={safeTitle}>
+      <div
+        className={`modal${isFullScreen ? ' modal--fullscreen' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={safeTitle}
+      >
         <div className="modal-header">
           <h2>{safeTitle}</h2>
-          <button
-            className="icon-btn"
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-          >
-            ✕
-          </button>
+          <div className="modal-header-actions">
+            <button
+              className="icon-btn"
+              type="button"
+              aria-label="Toggle full screen"
+              onClick={toggleFullScreen}
+              title={isFullScreen ? 'Exit full screen' : 'Full screen'}
+            >
+              ⛶
+            </button>
+            <button
+              className="icon-btn"
+              type="button"
+              aria-label="Close"
+              onClick={onClose}
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
-        <div className="modal-body" style={{ maxHeight: '70vh', overflow: 'auto' }}>
+
+        <div
+          className={`modal-body${isFullScreen ? ' modal-body--fullscreen' : ''}`}
+          style={isFullScreen ? undefined : { maxHeight: '70vh', overflow: 'auto' }}
+        >
+          {children}
+
           <div
             style={{
               display: 'grid',
@@ -73,4 +101,5 @@ export function DetailModal({ title, item, onClose }) {
     </div>
   );
 }
+
 
