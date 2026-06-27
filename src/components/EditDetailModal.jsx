@@ -98,6 +98,12 @@ export function EditDetailModal({
     return title || pickDisplayTitle(item, `Edit ${moduleId}`);
   }, [title, item, moduleId]);
 
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const toggleFullScreen = useCallback(() => {
+    setIsFullScreen((v) => !v);
+  }, []);
+
+
   const [draft, setDraft] = useState({});
   const [saving, setSaving] = useState(false);
 
@@ -169,21 +175,43 @@ export function EditDetailModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal" role="dialog" aria-modal="true" aria-label={safeTitle}>
+      <div
+        className={`modal${isFullScreen ? ' modal--fullscreen' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={safeTitle}
+      >
+
         <div className="modal-header">
           <h2>{safeTitle}</h2>
-          <button
-            className="icon-btn"
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-            disabled={saving}
-          >
-            ✕
-          </button>
+          <div className="modal-header-actions">
+            <button
+              className="icon-btn"
+              type="button"
+              aria-label="Toggle full screen"
+              onClick={toggleFullScreen}
+              title={isFullScreen ? 'Exit full screen' : 'Full screen'}
+            >
+              ⛶
+            </button>
+            <button
+              className="icon-btn"
+              type="button"
+              aria-label="Close"
+              onClick={onClose}
+              disabled={saving}
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
-        <div className="modal-body" style={{ maxHeight: '70vh', overflow: 'auto' }}>
+
+        <div
+          className={`modal-body${isFullScreen ? ' modal-body--fullscreen' : ''}`}
+          style={isFullScreen ? undefined : { maxHeight: '70vh', overflow: 'auto' }}
+        >
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div className="card glass" style={{ padding: '0.9rem' }}>
               <div className="card-title" style={{ marginBottom: '0.5rem' }}>
