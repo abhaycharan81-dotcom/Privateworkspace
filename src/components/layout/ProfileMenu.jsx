@@ -1,12 +1,12 @@
-import React from 'react';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase/firebase';
 
-export function ProfileMenu({ isOpen, onClose, onSettings }) {
+export function ProfileMenu({ isOpen, onClose, onSettings, user }) {
 
   if (!isOpen) return null;
 
   const handleLogout = () => {
-    // Placeholder for logout functionality
-    console.log('Logout clicked');
+    signOut(auth);
     onClose();
   };
 
@@ -25,10 +25,10 @@ export function ProfileMenu({ isOpen, onClose, onSettings }) {
   return (
     <div className="profile-menu" role="menu" aria-label="Profile menu">
       <div className="menu-header">
-        <div className="user-avatar">👤</div>
+        {user?.photoURL ? <img className="user-avatar avatar-image" src={user.photoURL} alt="" /> : <div className="user-avatar">👤</div>}
         <div className="user-info">
-          <div className="user-name">User</div>
-          <div className="user-status">Local mode</div>
+          <div className="user-name">{user?.displayName || 'Workspace user'}</div>
+          <div className="user-status">{user?.email || 'Signed in with Google'}</div>
         </div>
       </div>
 

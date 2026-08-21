@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAppState } from '../../context/AppContext';
-import { MODULES } from '../../utils/dataManagers';
 import { NotificationsPanel } from './NotificationsPanel';
 import { SearchResults } from './SearchResults';
 import { QuickActionMenu } from './QuickActionMenu';
 import { ProfileMenu } from './ProfileMenu';
 
-export function Topbar({ onModuleClick }) {
+export function Topbar({ user, onModuleClick }) {
   const { notificationCount, workspaces, currentWorkspace, globalSearchEnabled, notificationsEnabled } = useAppState();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -14,7 +13,6 @@ export function Topbar({ onModuleClick }) {
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
 
   return (
     <header className="topbar" role="banner">
@@ -94,8 +92,12 @@ export function Topbar({ onModuleClick }) {
             type="button"
             onClick={() => setShowProfileMenu(!showProfileMenu)}
           >
-            <span className="avatar" aria-hidden="true">AB</span>
-            <span className="profile-name">Abhay</span>
+            {user?.photoURL ? (
+              <img className="avatar avatar-image" src={user.photoURL} alt="" />
+            ) : (
+              <span className="avatar" aria-hidden="true">{user?.displayName?.slice(0, 2).toUpperCase() || 'PW'}</span>
+            )}
+            <span className="profile-name">{user?.displayName || user?.email || 'Workspace user'}</span>
             <span className="chip-caret" aria-hidden="true">▾</span>
           </button>
         </div>
@@ -109,7 +111,7 @@ export function Topbar({ onModuleClick }) {
         <SearchResults
           query={searchQuery}
           onModuleClick={onModuleClick}
-          onClose={() => setShowSearch(false)}
+          onClose={() => setSearchQuery('')}
         />
       )}
 
@@ -119,6 +121,7 @@ export function Topbar({ onModuleClick }) {
         onModuleClick={onModuleClick}
       />
       <ProfileMenu
+        user={user}
         isOpen={showProfileMenu}
         onClose={() => setShowProfileMenu(false)}
         onSettings={() => {

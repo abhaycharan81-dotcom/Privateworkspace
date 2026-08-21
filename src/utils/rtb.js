@@ -1,11 +1,12 @@
-import { ref, get, set, remove, child, update } from 'firebase/database';
-import { database } from '../firebase/firebase.js';
+import { ref, get, set, child } from 'firebase/database';
+import { auth, database } from '../firebase/firebase.js';
 
 const getUserUid = () => {
-  // Anonymous auth is not wired yet, so we use a fixed key for now.
-  // Security rules will still scope access to this fixed key.
-  // We will update this to uid-based once auth is in place.
-  return 'local-user';
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    throw new Error('Cannot access Realtime Database without an authenticated user');
+  }
+  return uid;
 };
 
 const pathFor = (moduleName) => {

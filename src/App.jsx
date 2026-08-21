@@ -1,4 +1,5 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { Topbar } from './components/layout/Topbar';
 
 import { Dashboard } from './components/layout/Dashboard';
@@ -6,9 +7,11 @@ import { Dashboard } from './components/layout/Dashboard';
 import { AppProvider } from './context/AppContext';
 import { SettingsModal } from './components/layout/SettingsModal';
 import { ModulePage } from './components/layout/ModulePage';
+import { LoginPage } from './components/layout/LoginPage';
+import { auth } from './firebase/firebase';
 import './App.css';
 
-function AppContent() {
+function AppContent({ user }) {
   const [currentModule, setCurrentModule] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -28,7 +31,7 @@ function AppContent() {
 
   return (
     <div className="app">
-      <Topbar onModuleClick={handleModuleClick} />
+      <Topbar user={user} onModuleClick={handleModuleClick} />
 
       <div className="layout">
         <main className="main" role="main">
@@ -46,9 +49,32 @@ function AppContent() {
 }
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, (nextUser) => {
+      setUser(nextUser);
+      setAuthLoading(false);
+    });
+  }, []);
+
+  if (authLoading) {
+    return (
+      <div className="auth-loading" role="status">
+        <span className="loading-mark" aria-hidden="true" />
+        <span>Opening your workspace...</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
   return (
     <AppProvider>
-      <AppContent />
+      <AppContent user={user} />
     </AppProvider>
   );
 }
