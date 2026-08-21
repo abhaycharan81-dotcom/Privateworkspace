@@ -122,6 +122,67 @@ p {
   background: var(--primary);
 }
 
+.auth-loading,
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.22), transparent 32%),
+    radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.1), transparent 28%),
+    var(--primary);
+}
+
+.auth-loading {
+  color: var(--text-muted);
+  gap: var(--spacing-sm);
+}
+
+.loading-mark {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--accent-light);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: auth-spin 800ms linear infinite;
+}
+
+.login-panel {
+  width: min(100% - 32px, 480px);
+  padding: clamp(32px, 7vw, 64px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: rgba(26, 31, 58, 0.84);
+  box-shadow: var(--shadow-xl);
+  text-align: center;
+}
+
+.login-brand {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--spacing-lg);
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+}
+
+.login-brand .logo-dot,
+.login-brand .logo-ring { position: absolute; }
+.login-brand .logo-dot { width: 10px; height: 10px; background: #fff; border-radius: 50%; }
+.login-brand .logo-ring { width: 34px; height: 34px; border: 2px solid rgba(255, 255, 255, 0.42); border-radius: 50%; }
+.login-kicker { color: var(--accent-light); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.login-panel h1 { margin: var(--spacing-sm) 0; font-size: clamp(2rem, 6vw, 2.8rem); }
+.login-copy { color: var(--text-muted); margin: 0 auto var(--spacing-xl); }
+.google-sign-in { width: 100%; display: flex; align-items: center; justify-content: center; gap: var(--spacing-sm); padding: 13px var(--spacing-md); border: 0; border-radius: var(--radius-md); background: #fff; color: #1f2937; font: inherit; font-weight: 700; cursor: pointer; transition: transform var(--transition-fast), box-shadow var(--transition-fast); }
+.google-sign-in:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24); }
+.google-sign-in:disabled { cursor: wait; opacity: 0.7; }
+.google-mark { color: #4285f4; font-weight: 800; font-size: 1.15rem; }
+.login-error { color: #fca5a5; font-size: 0.9rem; }
+.login-note { margin-top: var(--spacing-lg); color: var(--text-muted); font-size: 0.78rem; }
+@keyframes auth-spin { to { transform: rotate(360deg); } }
+
 .layout {
   display: flex;
   flex: 1;
